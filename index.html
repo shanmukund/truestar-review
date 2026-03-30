@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --ink: #1a1008; --cream: #faf6ef; --warm: #f0e8d8; --gold: #c8933a; --rust: #b85c2c; --muted: #8a7a68; --border: #ddd3c0; }
+  body { background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; padding: 40px 20px 60px; }
+  .page { max-width: 680px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 48px; }
+  .eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  h1 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 5vw, 42px); font-weight: 700; line-height: 1.15; color: var(--ink); }
+  h1 em { font-style: italic; color: var(--rust); }
+  .subtitle { margin-top: 10px; font-size: 14px; color: var(--muted); font-weight: 300; }
+  .divider { width: 60px; height: 2px; background: linear-gradient(to right, var(--gold), var(--rust)); margin: 20px auto 0; border-radius: 2px; }
+  .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  input[type="text"], input[type="date"], input[type="tel"] { background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); width: 100%; transition: border-color 0.2s; outline: none; }
+  input:focus { border-color: var(--gold); }
+  .builder-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 24px; position: relative; }
+  .builder-card::before { content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 3px; background: linear-gradient(to right, var(--gold), var(--rust)); border-radius: 0 0 3px 3px; }
+  .section-label { font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .section-label span { flex: 1; height: 1px; background: var(--border); }
+  .sentence-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; font-family: 'Playfair Display', serif; font-size: 15px; line-height: 1.8; color: var(--ink); }
+  .sentence-row:last-child { margin-bottom: 0; }
+  .phrase-select { appearance: none; -webkit-appearance: none; background: var(--warm); border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 28px 4px 12px; font-family: 'Playfair Display', serif; font-size: 15px; font-style: italic; color: var(--rust); cursor: pointer; outline: none; transition: all 0.2s; }
+  .phrase-select:hover, .phrase-select:focus { border-color: var(--gold); background-color: #f5ede0; }
+  .preview-card { background: var(--ink); border-radius: 14px; padding: 28px 32px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  #review-preview { font-family: 'Playfair Display', serif; font-size: 16px; line-height: 1.8; color: #f0e8d8; position: relative; z-index: 1; }
+  #review-preview .highlight { color: var(--gold); font-style: italic; }
+  .preview-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; font-weight: 500; }
+  .actions { display: flex; gap: 12px; margin-bottom: 0; }
+  .btn { padding: 13px 24px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, var(--gold), var(--rust)); color: white; flex: 1; }
+  .btn-secondary { background: white; color: var(--muted); border: 1.5px solid var(--border); }
+  .btn-sms { background: linear-gradient(135deg, #3aac6e, #2d8a56); color: white; flex: 1; }
+  .phone-row { margin-bottom: 16px; }
+  .phone-row label { color: #2d8a56 !important; }
+  .twilio-card { background: white; border: 1.5px solid #c8ddf0; border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
+  .twilio-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; cursor: pointer; background: #f0f6fd; }
+  .twilio-title { font-size: 13px; font-weight: 500; color: #2a5f9e; }
+  .twilio-toggle { font-size: 12px; color: #5a8ac8; }
+  .twilio-body { padding: 18px 20px; display: none; flex-direction: column; gap: 12px; }
+  .twilio-body.open { display: flex; }
+  .twilio-hint { font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.5; background: #f8fafd; border-left: 3px solid #5a8ac8; padding: 8px 12px; border-radius: 0 6px 6px 0; }
+  .twilio-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .twilio-fields input { background: #f5f9ff; border: 1.5px solid #c8ddf0; border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink); width: 100%; outline: none; }
+  .twilio-label { color: #2a5f9e !important; }
+  .twilio-status { font-size: 12px; color: #2d8a56; font-weight: 500; }
+  .sms-feedback { margin-top: 10px; font-size: 13px; font-weight: 500; text-align: center; border-radius: 8px; padding: 0; transition: all 0.3s; }
+  .sms-feedback.success { color: #2d8a56; padding: 10px; background: #edf7f2; }
+  .sms-feedback.error { color: var(--rust); padding: 10px; background: #fdf0ec; }
+  .sms-feedback.sending { color: #5a8ac8; padding: 10px; background: #f0f6fd; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: var(--cream); padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; transition: transform 0.35s; z-index: 100; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .freestyle-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 24px; position: relative; }
+  .freestyle-card::before { content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 3px; background: linear-gradient(to right, #4a9e6b, var(--gold), var(--rust)); border-radius: 0 0 3px 3px; }
+  .freestyle-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .freestyle-panel { display: flex; flex-direction: column; gap: 8px; }
+  .panel-header { display: flex; align-items: center; gap: 8px; }
+  .panel-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .panel-icon.hit { background: #e8f5ee; color: #2d7a50; }
+  .panel-icon.miss { background: #fdf0ec; color: #b85c2c; }
+  .panel-title { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+  .panel-title.hit { color: #2d7a50; }
+  .panel-title.miss { color: var(--rust); }
+  .panel-hint { font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.5; }
+  .freestyle-panel textarea { width: 100%; min-height: 100px; border-radius: 10px; padding: 12px 14px; font-family: 'Playfair Display', serif; font-size: 14px; line-height: 1.7; color: var(--ink); resize: vertical; outline: none; border: 1.5px solid var(--border); }
+  #freestyle-hit { background: #f4fbf7; }
+  #freestyle-miss { background: #fdf5f2; }
+  #freestyle-hit::placeholder { color: #9ec9b0; font-style: italic; }
+  #freestyle-miss::placeholder { color: #d9a898; font-style: italic; }
+  #freestyle-hit:focus { border-color: #4a9e6b; }
+  #freestyle-miss:focus { border-color: var(--rust); }
+  .char-count { text-align: right; font-size: 11px; color: var(--muted); margin-top: 3px; }
+  @media (max-width: 520px) { .freestyle-panels { grid-template-columns: 1fr; } .twilio-fields { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .meta-row { grid-template-columns: 1fr; } .sentence-row { font-size: 14px; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <p class="eyebrow">True★ Review</p>
+    <h1>Tell us about<br>your <em>experience</em></h1>
+    <p class="subtitle">Pick your phrases — we'll write the review for you.</p>
+    <div class="divider"></div>
+  </header>
+  <div class="meta-row">
+    <div class="field-group">
+      <label>Restaurant</label>
+      <input type="text" id="restaurant-name" placeholder="e.g. Nobu Downtown" oninput="updatePreview()">
+    </div>
+    <div class="field-group">
+      <label>Visit Date</label>
+      <input type="date" id="visit-date" oninput="updatePreview()">
+    </div>
+  </div>
+  <div class="builder-card">
+    <div class="section-label">Build your review <span></span></div>
+    <div class="sentence-row">
+      <span>The food was</span>
+      <select class="phrase-select" id="food" onchange="updatePreview()">
+        <option value="delicious">delicious</option>
+        <option value="decent">decent</option>
+        <option value="disappointing">disappointing</option>
+      </select>
+      <span>and the portions were</span>
+      <select class="phrase-select" id="portions" onchange="updatePreview()">
+        <option value="generous">generous</option>
+        <option value="fair">fair</option>
+        <option value="small">small</option>
+      </select>
+      <span>for the price.</span>
+    </div>
+    <div class="sentence-row">
+      <span>The space felt</span>
+      <select class="phrase-select" id="space" onchange="updatePreview()">
+        <option value="spotless">spotless</option>
+        <option value="acceptable">acceptable</option>
+        <option value="concerning">concerning</option>
+      </select>
+      <span>and the vibe was</span>
+      <select class="phrase-select" id="vibe" onchange="updatePreview()">
+        <option value="lively">lively</option>
+        <option value="cozy">cozy</option>
+        <option value="flat">flat</option>
+      </select>
+      <span>.</span>
+    </div>
+    <div class="sentence-row">
+      <span>Staff were</span>
+      <select class="phrase-select" id="staff" onchange="updatePreview()">
+        <option value="warm">warm</option>
+        <option value="professional">professional</option>
+        <option value="indifferent">indifferent</option>
+        <option value="rude">rude</option>
+      </select>
+      <span>.</span>
+    </div>
+    <div class="sentence-row">
+      <span>What stood out most was</span>
+      <select class="phrase-select" id="standout" onchange="updatePreview()">
+        <option value="the flavors">the flavors</option>
+        <option value="the value">the value</option>
+        <option value="the culture">the culture</option>
+        <option value="the creativity">the creativity</option>
+        <option value="the service">the service</option>
+      </select>
+      <span>.</span>
+    </div>
+    <div class="sentence-row">
+      <span>I would</span>
+      <select class="phrase-select" id="return" onchange="updatePreview()">
+        <option value="definitely">definitely</option>
+        <option value="probably">probably</option>
+        <option value="not">not</option>
+      </select>
+      <span>come back.</span>
+    </div>
+  </div>
+  <div class="freestyle-card">
+    <div class="section-label">In your own words <span></span></div>
+    <div class="freestyle-panels">
+      <div class="freestyle-panel">
+        <div class="panel-header">
+          <div class="panel-icon hit">✦</div>
+          <span class="panel-title hit">Highlights</span>
+        </div>
+        <p class="panel-hint">A dish or moment that met or exceeded expectations.</p>
+        <textarea id="freestyle-hit" placeholder="e.g. The lamb chops were perfectly charred." oninput="updatePreview(); updateCharCount('hit')"></textarea>
+        <div class="char-count"><span id="char-hit">0</span> chars</div>
+      </div>
+      <div class="freestyle-panel">
+        <div class="panel-header">
+          <div class="panel-icon miss">✗</div>
+          <span class="panel-title miss">Missed the Mark</span>
+        </div>
+        <p class="panel-hint">A dish or moment that fell short of expectations.</p>
+        <textarea id="freestyle-miss" placeholder="e.g. The risotto arrived lukewarm." oninput="updatePreview(); updateCharCount('miss')"></textarea>
+        <div class="char-count"><span id="char-miss">0</span> chars</div>
+      </div>
+    </div>
+  </div>
+  <div class="preview-card">
+    <div class="preview-label">Your review</div>
+    <div id="review-preview">Fill in the fields above to see your review here.</div>
+  </div>
+  <div class="twilio-card">
+    <div class="twilio-header" onclick="toggleTwilio()">
+      <span class="twilio-title">⚙️ Twilio SMS Settings</span>
+      <span class="twilio-toggle" id="twilio-toggle">▾ Configure</span>
+    </div>
+    <div class="twilio-body" id="twilio-body">
+      <p class="twilio-hint">Credentials saved locally in this browser only.</p>
+      <div class="twilio-fields">
+        <div class="field-group">
+          <label class="twilio-label">Netlify Function URL</label>
+          <input type="text" id="twilio-url" placeholder="https://truestar-review.netlify.app/.netlify/functions/send-sms" oninput="saveTwilioSettings()">
+        </div>
+        <div class="field-group">
+          <label class="twilio-label">Your Twilio Number</label>
+          <input type="text" id="twilio-from" placeholder="+18666528450" oninput="saveTwilioSettings()">
+        </div>
+      </div>
+      <div class="twilio-status" id="twilio-status"></div>
+    </div>
+  </div>
+  <div class="phone-row">
+    <label>📱 Reviewer's Phone Number</label>
+    <input type="tel" id="phone-number" placeholder="e.g. +16025551234">
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+    <button class="btn btn-sms" onclick="sendSMS()" id="sms-btn">💬 Send Text</button>
+    <button class="btn btn-primary" onclick="copyReview()">Copy Review</button>
+  </div>
+  <div class="sms-feedback" id="sms-feedback"></div>
+</div>
+<div class="toast" id="toast">✓ Copied to clipboard!</div>
+<script>
+  function updatePreview() {
+    const name = document.getElementById('restaurant-name').value.trim();
+    const dateRaw = document.getElementById('visit-date').value;
+    const food = document.getElementById('food').value;
+    const portions = document.getElementById('portions').value;
+    const space = document.getElementById('space').value;
+    const vibe = document.getElementById('vibe').value;
+    const staff = document.getElementById('staff').value;
+    const standout = document.getElementById('standout').value;
+    const ret = document.getElementById('return').value;
+    const hit = document.getElementById('freestyle-hit').value.trim();
+    const miss = document.getElementById('freestyle-miss').value.trim();
+    let dateStr = '';
+    if (dateRaw) { const d = new Date(dateRaw + 'T00:00:00'); dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+    const hi = (t) => `<span class="highlight">${t}</span>`;
+    let intro = '';
+    if (name && dateStr) intro = `My visit to ${hi(name)} on ${hi(dateStr)} — `;
+    else if (name) intro = `My visit to ${hi(name)} — `;
+    else if (dateStr) intro = `My visit on ${hi(dateStr)} — `;
+    let body = `${intro}The food was ${hi(food)} and the portions were ${hi(portions)} for the price. The space felt ${hi(space)} and the vibe was ${hi(vibe)}. Staff were ${hi(staff)}. What stood out most was ${hi(standout)}. I would ${hi(ret)} come back.`;
+    if (hit) body += `<br><br><span style="color:#7ed4a4;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif;">✦ Highlights</span><br><span style="color:#e8dcc8;">${hit}</span>`;
+    if (miss) body += `<br><br><span style="color:#e8957a;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Sans',sans-serif;">✗ Missed the Mark</span><br><span style="color:#e8dcc8;">${miss}</span>`;
+    document.getElementById('review-preview').innerHTML = body;
+  }
+  function updateCharCount(panel) {
+    const id = panel === 'hit' ? 'freestyle-hit' : 'freestyle-miss';
+    const countId = panel === 'hit' ? 'char-hit' : 'char-miss';
+    document.getElementById(countId).textContent = document.getElementById(id).value.length;
+  }
+  function getPlainText() {
+    const name = document.getElementById('restaurant-name').value.trim();
+    const dateRaw = document.getElementById('visit-date').value;
+    const food = document.getElementById('food').value;
+    const portions = document.getElementById('portions').value;
+    const space = document.getElementById('space').value;
+    const vibe = document.getElementById('vibe').value;
+    const staff = document.getElementById('staff').value;
+    const standout = document.getElementById('standout').value;
+    const ret = document.getElementById('return').value;
+    const hit = document.getElementById('freestyle-hit').value.trim();
+    const miss = document.getElementById('freestyle-miss').value.trim();
+    let dateStr = '';
+    if (dateRaw) { const d = new Date(dateRaw + 'T00:00:00'); dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+    let intro = '';
+    if (name && dateStr) intro = `My visit to ${name} on ${dateStr} — `;
+    else if (name) intro = `My visit to ${name} — `;
+    else if (dateStr) intro = `My visit on ${dateStr} — `;
+    let text = `${intro}The food was ${food} and the portions were ${portions} for the price. The space felt ${space} and the vibe was ${vibe}. Staff were ${staff}. What stood out most was ${standout}. I would ${ret} come back.`;
+    if (hit) text += `\n\nHighlights: ${hit}`;
+    if (miss) text += `\n\nMissed the Mark: ${miss}`;
+    return text;
+  }
+  function toggleTwilio() {
+    const body = document.getElementById('twilio-body');
+    const toggle = document.getElementById('twilio-toggle');
+    body.classList.toggle('open');
+    toggle.textContent = body.classList.contains('open') ? '▴ Hide' : '▾ Configure';
+  }
+  function saveTwilioSettings() {
+    const url = document.getElementById('twilio-url').value.trim();
+    const from = document.getElementById('twilio-from').value.trim();
+    localStorage.setItem('twilio_url', url);
+    localStorage.setItem('twilio_from', from);
+    const st = document.getElementById('twilio-status');
+    st.textContent = (url && from) ? '✓ Settings saved' : '';
+  }
+  function loadTwilioSettings() {
+    const url = localStorage.getItem('twilio_url') || '';
+    const from = localStorage.getItem('twilio_from') || '';
+    document.getElementById('twilio-url').value = url;
+    document.getElementById('twilio-from').value = from;
+    if (url && from) document.getElementById('twilio-status').textContent = '✓ Settings saved';
+  }
+  async function sendSMS() {
+    const url = (localStorage.getItem('twilio_url') || '').trim();
+    const from = (localStorage.getItem('twilio_from') || '').trim();
+    const to = document.getElementById('phone-number').value.trim();
+    const body = getPlainText();
+    const fb = document.getElementById('sms-feedback');
+    const btn = document.getElementById('sms-btn');
+    if (!url || !from) {
+      fb.className = 'sms-feedback error';
+      fb.textContent = '⚠️ Please configure Twilio settings above first.';
+      document.getElementById('twilio-body').classList.add('open');
+      document.getElementById('twilio-toggle').textContent = '▴ Hide';
+      return;
+    }
+    if (!to) { fb.className = 'sms-feedback error'; fb.textContent = '⚠️ Please enter the reviewer\'s phone number.'; return; }
+    btn.disabled = true; btn.textContent = 'Sending…';
+    fb.className = 'sms-feedback sending'; fb.textContent = '📤 Sending via Twilio…';
+    try {
+      const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, from, body }) });
+      const data = await resp.json();
+      if (resp.ok && !data.error) {
+        fb.className = 'sms-feedback success'; fb.textContent = '✓ Text sent successfully!';
+      } else { throw new Error(data.error || 'Unknown error'); }
+    } catch (err) {
+      fb.className = 'sms-feedback error'; fb.textContent = `✗ Failed: ${err.message}`;
+    } finally {
+      btn.disabled = false; btn.textContent = '💬 Send Text';
+    }
+  }
+  function copyReview() {
+    navigator.clipboard.writeText(getPlainText()).then(() => {
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    });
+  }
+  function resetForm() {
+    document.getElementById('restaurant-name').value = '';
+    document.getElementById('visit-date').value = '';
+    document.getElementById('freestyle-hit').value = '';
+    document.getElementById('freestyle-miss').value = '';
+    document.getElementById('char-hit').textContent = '0';
+    document.getElementById('char-miss').textContent = '0';
+    document.getElementById('phone-number').value = '';
+    const fb = document.getElementById('sms-feedback');
+    fb.className = 'sms-feedback'; fb.textContent = '';
+    ['food','portions','space','vibe','staff','standout','return'].forEach(id => { document.getElementById(id).selectedIndex = 0; });
+    document.getElementById('review-preview').innerHTML = 'Fill in the fields above to see your review here.';
+  }
+  loadTwilioSettings();
+  updatePreview();
+</script>
+</body>
+</html>
